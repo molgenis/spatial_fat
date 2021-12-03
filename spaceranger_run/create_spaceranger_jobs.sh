@@ -6,8 +6,8 @@ JPEG_DIR_APPEND='/images/'
 FASTQ_DIR_APPEND='/fastq/'
 ALIGN_DIR_APPEND='/alignment/'
 REF_DIR='/groups/umcg-franke-scrna/tmp01/external_datasets/refdata-gex-GRCh38-2020-A/'
-OUT_DIR='/groups/umcg-franke-scrna/tmp01/releases/blokland-2020/v1/spatial_transcriptonics/processed/alignment/spaceranger_out/'
-SCR_DIR='/groups/umcg-franke-scrna/scr01/releases/blokland-2020/v1/spatial_transcriptonics/processed/alignment/spaceranger_out/'
+OUT_DIR='/groups/umcg-franke-scrna/tmp01/releases/blokland-2020/v1/spatial_transcriptonics/processed/alignment/spaceranger_out'
+SCR_DIR='releases/blokland-2020/v1/spatial_transcriptonics/processed/alignment/spaceranger_out'
 JOB_DIR='/groups/umcg-franke-scrna/tmp01/releases/blokland-2020/v1/spatial_transcriptonics/processed/jobs/'
 
 # here are the slides to look at
@@ -75,7 +75,7 @@ for run in ${RUN_NAMES[*]}
             echo '--area='${area}'\' >> ${out_sbatch}
             echo '--loupe-alignment='${loupe} >> ${out_sbatch}
             # copy the result to tmp
-            echo 'cp -r '$sample_id' '${OUT_DIR} >> ${out_sbatch}
+            echo 'cp -r '${sample_id}' '${OUT_DIR} >> ${out_sbatch}
           done
       done
   done
