@@ -52,8 +52,8 @@ for run in ${RUN_NAMES[*]}
             # paste it all together
             echo '#!/usr/bin/env bash' > ${out_sbatch}
             echo '#SBATCH --job-name=map_'${job_name} >> ${out_sbatch}
-            echo '#SBATCH --output='${JOBS_LOC}'/'${out} >> ${out_sbatch}
-            echo '#SBATCH --error='${JOBS_LOC}'/'${err} >> ${out_sbatch}
+            echo '#SBATCH --output='${out} >> ${out_sbatch}
+            echo '#SBATCH --error='${err} >> ${out_sbatch}
             echo '#SBATCH --time=23:59:59'  >> ${out_sbatch}
             echo '#SBATCH --cpus-per-task=12' >> ${out_sbatch}
             echo '#SBATCH --mem=128gb' >> ${out_sbatch}
@@ -72,7 +72,7 @@ for run in ${RUN_NAMES[*]}
             echo '--sample='${sample}' \' >> ${out_sbatch}
             echo '--image='${jpeg}' \' >> ${out_sbatch}
             echo '--slide='${slide}' \' >> ${out_sbatch}
-            echo '--area='${area}'\' >> ${out_sbatch}
+            echo '--area='${area}' \' >> ${out_sbatch}
             echo '--loupe-alignment='${loupe} >> ${out_sbatch}
             # copy the result to tmp
             echo 'cp -r '${sample_id}' '${OUT_DIR} >> ${out_sbatch}
