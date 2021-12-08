@@ -15,11 +15,10 @@ JOB_DIR='/groups/umcg-franke-scrna/tmp01/releases/blokland-2020/v1/spatial_trans
 SLIDES=('V10A20-012')
 #AREAS=('A1')
 #AREAS=('C1')
-#AREAS=('B1')
-AREAS=('C1')
+AREAS=('B1', 'C1')
 
 # these are the run names
-RUN_NAMES=('211130_spikeinrun1_trimmed_filtered')
+RUN_NAMES=('211130_spikeinrun1_trimmed_filtered_synched_sorted')
 
 # check each run
 for run in ${RUN_NAMES[*]}
