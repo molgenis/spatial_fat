@@ -18,7 +18,7 @@ SLIDES=('V10A20-012')
 AREAS=('B1', 'C1')
 
 # these are the run names
-RUN_NAMES=('211130_spikeinrun1_trimmed_filtered_synched_sorted')
+RUN_NAMES=('211130_spikeinrun1_trimmed_filtered_synched_sorted_cr100')
 
 # check each run
 for run in ${RUN_NAMES[*]}
@@ -79,7 +79,9 @@ for run in ${RUN_NAMES[*]}
             echo '--area='${area}' \' >> ${out_sbatch}
             echo '--loupe-alignment='${loupe_full} >> ${out_sbatch}
             # copy the result to tmp
-            echo 'cp -r '${sample_id}' '${OUT_DIR} >> ${out_sbatch}
+            echo 'cp -r '${sample_id}' '${OUT_DIR}'/'${run}'/' >> ${out_sbatch}
+            # tell people what we did
+            echo 'wrote job script to '${out_sbatch}
           done
       done
   done
