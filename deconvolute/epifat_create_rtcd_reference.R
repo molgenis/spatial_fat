@@ -21,13 +21,34 @@ library(spacexr) # to create the reference
 #' 
 #' @param slices_loc the directory containing the .mtx files
 #' @param slices_regex the regex for the .mtx files in the directory
+#' @param verbose whether or not to to mention which slice we are at
 #' @returns a sparse matrix of all the combined slices
 #' merged_slices <- read_sliced_matrices(hca_loc)
-read_sliced_matrices <- function(slices_loc, slices_regex='*.mtx') {
+read_sliced_matrices <- function(slices_loc, slices_regex='*.mtx', slice_sort='(\\d+)', verbose=F) {
   # make a list to store the slices
   slices_list <- list()
   # do the listing of files
   slices <- list.files(slices_loc, pattern = slices_regex, full.names = F)
+  # sort the slices if we need to
+  if (!is.null(slice_sort)) {
+    # get the number regex returns
+    slice_regex_returns <- regexpr(slice_sort, slices)
+    # store the slice numbers
+    slice_starts <- rep(NA, times = length(slice_regex_returns))
+    # check each slice regex
+    for (regex_i in 1:length(slice_regex_returns)) {
+      # extract the start of the regex match
+      regex_start <- slice_regex_returns[[regex_i]][[1]]
+      # and the length of the regex
+      regex_length <- attr(x = slice_regex_returns, which = 'match.length')[regex_i]
+      # extract the start from the filename
+      slice_start_string <- substr(slices[regex_i], regex_start, regex_start + regex_length - 1)
+      # add to the slice starts
+      slice_starts[regex_i] <- as.numeric(slice_start_string)
+    }
+    # now order the slices based on these slice starts
+    slices <- slices[order(slice_starts)] 
+  }
   # check each slice
   for (slice_loc in slices) {
     # create the full path
@@ -92,5 +113,5 @@ names(cell_types) <- hca_barcodes # create cell_types named list
 cell_types <- as.factor(cell_types) # convert to factor data type
 nUMI <- hca_metadata$total_counts # get the total counts from the metadata
 names(nUMI) <- hca_barcodes # create nUMI named list
-reference <- Reference(counts, cell_types, nUMI) # create the object
+reference <- Reference(merged_slices, cell_types, nUMI) # create the object
 saveRDS(reference, rctd_ref_loc) # save result
