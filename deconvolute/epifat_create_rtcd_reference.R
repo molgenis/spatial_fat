@@ -53,6 +53,10 @@ read_sliced_matrices <- function(slices_loc, slices_regex='*.mtx', slice_sort='(
   for (slice_loc in slices) {
     # create the full path
     slice_path_full <- paste(slices_loc, slice_loc, sep = '')
+    # report on progress if requested
+    if (verbose) {
+      print(paste('reading slice', slice_path_full))
+    }
     # read the slice
     slice <- readMM(slice_path_full)
     # transpose it, so that it is genes on the rows, and cells on the column
