@@ -5,15 +5,12 @@
 # Function: read the first batch of spaceranger input into Seuart
 ############################################################################################################################
 
-
 ###############################
 # loading libraries
 ###############################
-
 library(Seurat) #"should be Seurat version 4!"
 library(sctransform)
 library(ggplot2)
-library(spacexr)
 library(Matrix)
 library(cowplot)
 library(dplyr)
@@ -167,10 +164,7 @@ make_spatialumap_spaceranger_objects <- function(spaceranger_object_list) {
 # 2. Find UMIs and unique genes per section, make plot - per section
 # 3. Filter out: A. Spots per section with too few genes, filter out genes if expressed in <5 spots?? - per section
 # 4. Normalize data (SCTransform) - per section
-# 5. intergrating data
-# 6. PCA - merged
-# 7. UMAP - merged
-# 8. Deconvolution - per section using raw counts
+
 
 ###############################
 # set the locations of the files
@@ -202,16 +196,3 @@ spaceranger_object_list <- filter_spaceranger_objects(spaceranger_object_list)
 spaceranger_object_list <- normalize_spaceranger_objects(spaceranger_object_list)
 # save the object
 saveRDS(spaceranger_object_list, spaceranger_object_loc)
-
-###############################
-# 5. merging and integrating data
-###############################
-
-# load newer Seurat version for integration
-remotes::install_github("satijalab/seurat", "seurat5", quiet = TRUE)
-library(Seurat)
-
-# prepare for integration
-spaceranger_object_list <- prepare_spaceranger_objects_for_integration(spaceranger_object_list)
-# integrating data
-spaceranger_integrated <- integrate_spaceranger_objects(spaceranger_object_list)
