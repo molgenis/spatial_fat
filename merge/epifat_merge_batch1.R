@@ -71,7 +71,7 @@ integrate_spaceranger_objects_rna_method <- function(spaceranger_object_list) {
 # location to store the resulting files
 objects_loc <- "/groups/umcg-franke-scrna/tmp02/projects/epifat/ongoing/seurat_preprocess_samples/objects/"
 spaceranger_deconvolute_loc <- paste(objects_loc, "spaceranger.20230811.deconvoluted.rds", sep = "")
-spaceranger_integrated_loc <- paste(objects_loc, "spaceranger.20230811.integrated.rds", sep = "")
+spaceranger_integrated_loc <- paste(objects_loc, "spaceranger.20230816.integrated.rds", sep = "")
 
 ###############################
 # 6. merging and integrating data
@@ -82,6 +82,12 @@ spaceranger_object_list <- readRDS(spaceranger_deconvolute_loc)
 
 # integrating all four sections
 spaceranger_integrated <- integrate_spaceranger_objects_rna_method(spaceranger_object_list)
+
+# add the deconvolution also a an assay
+as_matrix <- t(spaceranger_integrated@meta.data[, 9:(ncol(spaceranger_integrated@meta.data) - 2)])
+as_matrix <- matrix(as.numeric(as_matrix), ncol = ncol(as_matrix), dimnames = list(rownames(as_matrix), colnames(as_matrix)))
+assay_object <- CreateAssay5Object(data = as_matrix)
+spaceranger_integrated[['RCTD']] <- assay_object
 
 # save integrated object
 saveRDS(spaceranger_integrated, spaceranger_integrated_loc)
