@@ -135,6 +135,7 @@ merged_genes_tops[merged_genes_tops$pval_safe == 0, "pval_safe"] <- .Machine$dou
 merged_genes_tops$pval_safe_log <- -log10(merged_genes_tops$pval_safe)
 # make the numbers characters, so they are all shown
 merged_genes_tops$cluster <- factor(as.character(merged_genes_tops$cluster), levels = unique(as.character(merged_genes_tops$cluster)))
+
 # make the plot
 ggplot(merged_genes_tops, aes(x = cluster, y = gene, size = pval_safe_log, color = avg_log2FC)) +
   geom_point() +
@@ -142,9 +143,14 @@ ggplot(merged_genes_tops, aes(x = cluster, y = gene, size = pval_safe_log, color
     high = "darkred",
     mid = "grey",
     low = "darkblue",
-    midpoint = 0
-) + theme(panel.border = element_rect(color="black", fill=NA, size=1.1), 
+    midpoint = 0,
+    guide = guide_colorbar(nbin = 4),
+    limits = c(-5.2,5.2),
+) + scale_size_continuous(range = c(1, 4)) + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        panel.border = element_rect(color="black", fill=NA, size=1.1), 
           panel.grid.major = element_line(color = "gray", size = 0.25, linetype = 1), 
           panel.grid.minor = element_blank(), 
           panel.background = element_blank(), 
-          strip.background = element_rect(colour="white", fill="white"))
+          strip.background = element_rect(colour="white", fill="white")) +
+  labs(size = "-log10(p)")
