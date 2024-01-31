@@ -1,3 +1,163 @@
+###############################
+# Run Pathway Finder
+###############################
+# lets try the pathway finder for DE genes from CSIDE
+library(pathfindR)
+library(biomaRt)
+
+# first add gene symbols to the dataframes
+# Specify the Ensembl dataset you want to use (human)
+ensembl_dataset <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+
+# Define your Ensembl IDs
+ensembl_ids_A1_adipo <- rownames(results_de_A1_adipo)
+ensembl_ids_A1_endo <- rownames(results_de_A1_endo)
+ensembl_ids_C1_adipo <- rownames(results_de_C1_adipo)
+ensembl_ids_C1_endo <- rownames(results_de_C1_endo)
+
+# Get gene symbols corresponding to Ensembl IDs
+gene_symbols_A1_adipo <- getBM(attributes = c("ensembl_gene_id", "external_gene_name"),
+                               filters = "ensembl_gene_id", 
+                               values = ensembl_ids_A1_adipo, 
+                               mart = ensembl_dataset)
+gene_symbols_A1_endo <- getBM(attributes = c("ensembl_gene_id", "external_gene_name"),
+                              filters = "ensembl_gene_id", 
+                              values = ensembl_ids_A1_endo, 
+                              mart = ensembl_dataset)
+gene_symbols_C1_adipo <- getBM(attributes = c("ensembl_gene_id", "external_gene_name"),
+                               filters = "ensembl_gene_id", 
+                               values = ensembl_ids_C1_adipo, 
+                               mart = ensembl_dataset)
+gene_symbols_C1_endo <- getBM(attributes = c("ensembl_gene_id", "external_gene_name"),
+                              filters = "ensembl_gene_id", 
+                              values = ensembl_ids_C1_endo, 
+                              mart = ensembl_dataset)
+
+# Merge gene symbols with original data based on Ensembl IDs
+merged_data_A1_adipo <- merge(gene_symbols_A1_adipo, results_de_A1_adipo, by.x = "ensembl_gene_id", by.y = "row.names")
+merged_data_A1_endo <- merge(gene_symbols_A1_endo, results_de_A1_endo, by.x = "ensembl_gene_id", by.y = "row.names")
+merged_data_C1_adipo <- merge(gene_symbols_C1_adipo, results_de_C1_adipo, by.x = "ensembl_gene_id", by.y = "row.names")
+merged_data_C1_endo <- merge(gene_symbols_C1_endo, results_de_C1_endo, by.x = "ensembl_gene_id", by.y = "row.names")
+
+# Extract relevant columns from merged data
+merged_data_A1_adipo_gene_symbols <- merged_data_A1_adipo$external_gene_name
+merged_data_A1_adipo_logFC <- merged_data_A1_adipo$`log_fc`
+merged_data_A1_adipo_adj_P_Val <- merged_data_A1_adipo$`p_val`
+
+merged_data_A1_endo_gene_symbols <- merged_data_A1_endo$external_gene_name
+merged_data_A1_endo_logFC <- merged_data_A1_endo$`log_fc`
+merged_data_A1_endo_adj_P_Val <- merged_data_A1_endo$`p_val`
+
+merged_data_C1_adipo_gene_symbols <- merged_data_C1_adipo$external_gene_name
+merged_data_C1_adipo_logFC <- merged_data_C1_adipo$`log_fc`
+merged_data_C1_adipo_adj_P_Val <- merged_data_C1_adipo$`p_val`
+
+merged_data_C1_endo_gene_symbols <- merged_data_C1_endo$external_gene_name
+merged_data_C1_endo_logFC <- merged_data_C1_endo$`log_fc`
+merged_data_C1_endo_adj_P_Val <- merged_data_C1_endo$`p_val`
+
+# Create a dataframe with desired columns
+result_df_A1_adipo <- data.frame(Gene.symbol = merged_data_A1_adipo_gene_symbols, logFC = merged_data_A1_adipo_logFC, adj.P.Val = merged_data_A1_adipo_adj_P_Val)
+result_df_A1_endo <- data.frame(Gene.symbol = merged_data_A1_endo_gene_symbols, logFC = merged_data_A1_endo_logFC, adj.P.Val = merged_data_A1_endo_adj_P_Val)
+result_df_C1_adipo <- data.frame(Gene.symbol = merged_data_C1_adipo_gene_symbols, logFC = merged_data_C1_adipo_logFC, adj.P.Val = merged_data_C1_adipo_adj_P_Val)
+result_df_C1_endo <- data.frame(Gene.symbol = merged_data_C1_endo_gene_symbols, logFC = merged_data_C1_endo_logFC, adj.P.Val = merged_data_C1_endo_adj_P_Val)
+
+###############################
+# Do pathway analysis for up and down DE genes for adipocytes and endothelial cells of A1 and C1
+###############################
+
+output_pathways_A1_adipo_reac_up <- run_pathfindR(result_df_A1_adipo[result_df_A1_adipo$logFC > 0, ], gene_sets = "Reactome", p_val_threshold = 0.05)
+output_pathways_A1_adipo_reac_down <- run_pathfindR(result_df_A1_adipo[result_df_A1_adipo$logFC < 0, ], gene_sets = "Reactome", p_val_threshold = 0.05)
+
+output_pathways_A1_endo_reac_up <- run_pathfindR(result_df_A1_endo[result_df_A1_endo$logFC > 0, ], gene_sets = "Reactome", p_val_threshold = 0.05)
+output_pathways_A1_endo_reac_down <- run_pathfindR(result_df_A1_endo[result_df_A1_endo$logFC < 0, ], gene_sets = "Reactome", p_val_threshold = 0.05)
+
+output_pathways_C1_adipo_reac_up <- run_pathfindR(result_df_C1_adipo[result_df_C1_adipo$logFC > 0, ], gene_sets = "Reactome", p_val_threshold = 0.05)
+output_pathways_C1_adipo_reac_down <- run_pathfindR(result_df_C1_adipo[result_df_C1_adipo$logFC < 0, ], gene_sets = "Reactome", p_val_threshold = 0.05)
+
+output_pathways_C1_endo_reac_up <- run_pathfindR(result_df_C1_endo[result_df_C1_endo$logFC > 0, ], gene_sets = "Reactome", p_val_threshold = 0.05)
+output_pathways_C1_endo_reac_down <- run_pathfindR(result_df_C1_endo[result_df_C1_endo$logFC < 0, ], gene_sets = "Reactome", p_val_threshold = 0.05)
+
+# Save the object as an RDS file
+output_path <- "/groups/umcg-franke-scrna/tmp01/projects/epifat/ongoing/seurat_preprocess_samples/objects/"
+saveRDS(output_pathways_A1_adipo_reac_up, file.path(output_path, "output_pathways_A1_adipo_reac_up.rds"))
+saveRDS(output_pathways_A1_adipo_reac_down, file.path(output_path, "output_pathways_A1_adipo_reac_down.rds"))
+saveRDS(output_pathways_A1_endo_reac_up, file.path(output_path, "output_pathways_A1_endo_reac_up.rds"))
+saveRDS(output_pathways_A1_endo_reac_down, file.path(output_path, "output_pathways_A1_endo_reac_down.rds"))
+saveRDS(output_pathways_C1_adipo_reac_up, file.path(output_path, "output_pathways_C1_adipo_reac_up.rds"))
+saveRDS(output_pathways_C1_adipo_reac_down, file.path(output_path, "output_pathways_C1_adipo_reac_down.rds"))
+saveRDS(output_pathways_C1_endo_reac_up, file.path(output_path, "output_pathways_C1_endo_reac_up.rds"))
+saveRDS(output_pathways_C1_endo_reac_down, file.path(output_path, "output_pathways_C1_endo_reac_down.rds"))
+
+###############################
+# load functions
+###############################
+split_string_with_max_length <- function(string, max_length=15) {
+  # split the string on the space first
+  words <- strsplit(string, ' ')[[1]]
+  # and initial pasted string
+  final_string <- ''
+  # and the temporary string
+  tmp_string <- ''
+  # check each word
+  for (word in words) {
+    # get the lenght of the temporary string
+    tmp_len <- nchar(tmp_string)
+    # get the length of the word
+    word_len <- nchar(word)
+    # length of the final string
+    final_len <- nchar(final_string)
+    # check if adding the next word would make us go over the limit
+    if ((tmp_len + word_len) > max_length) {
+      if (final_len > 0) {
+        # add the temporary word to the final string if it was not empty
+        final_string <- paste(final_string, '\n', tmp_string, sep = '')
+      }
+      else{
+        # if there was not final string yet, it will just become that temporary string
+        final_string <- tmp_string
+      }
+      # reset the temporary string
+      tmp_string <- word
+    }
+    else{
+      # otherwise add it to the temporary string
+      if (tmp_len > 0) {
+        tmp_string <- paste(tmp_string, word)
+      }
+      # or set if the temporary string was empty
+      else{
+        tmp_string <- word
+      }
+    }
+  }
+  # add last word
+  if (nchar(paste(final_string, tmp_string)) > max_length) {
+    if (nchar(final_string) == 0) {
+      final_string <- tmp_string
+    }
+    else if (nchar(tmp_string > 0)) {
+      final_string <- paste(final_string, '\n', tmp_string, sep = '')
+    }
+    else{
+      # nothing the final string is as it is
+    }
+  }
+  else {
+    if (nchar(final_string) == 0) {
+      final_string <- tmp_string
+    }
+    else if(nchar(tmp_string) == 0){
+      # nothing, the final string is as is
+    }
+    else{
+      final_string <- paste(final_string, ' ', tmp_string, sep = '')
+    }
+  }
+  # add the last word
+  return(final_string)
+}
+
 # Get Reactome pathways for Treeplot
 get_children <- function(relation_table, starting_id){
   # get all of the children of the starting ID
@@ -319,10 +479,15 @@ plot_pathway_categories_celltype <- function(pathway_table_significant, category
   return(p)
 }
 
+#########################
 # load libraries
+#########################
 library(RColorBrewer)
 library(treemapify) # not in container
 
+#########################
+# do stuff
+#########################
 # load the pathways
 pathways <- read.table('/groups/umcg-franke-scrna/tmp01/releases/blokland-2020/v1/pathway_enrichment/ReactomePathways.tsv', sep='\t', quote = '')
 # subset to just human to speed up the search
@@ -365,7 +530,7 @@ C1_endo_down <- plot_pathway_categories_celltype(output_pathways_C1_endo_reac_do
 # endo up --> immune system
 # endo down --> immune system
 
-# filtering in up and down pathways
+# filter in up and down pathways
 include_pathways <- pathways_to_top_level[pathways_to_top_level[['top_parent']] == 'Immune system', 'id']
 new_A1_adipo_up <- output_pathways_A1_adipo_reac_up[output_pathways_A1_adipo_reac_up[['catagory']] %in% c('Signal Transduction'), ] 
 enrichment_chart(new_A1_adipo_up, plot_by_cluster = T)
@@ -383,3 +548,6 @@ new_C1_endo_up <- output_pathways_C1_endo_reac_up[output_pathways_C1_endo_reac_u
 enrichment_chart(new_C1_endo_up, plot_by_cluster = T)
 new_C1_endo_down <- output_pathways_C1_endo_reac_down[output_pathways_C1_endo_reac_down[['catagory']] %in% c('Immune System'), ] 
 enrichment_chart(new_C1_endo_down, plot_by_cluster = T)
+
+
+
