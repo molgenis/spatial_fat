@@ -1,5 +1,5 @@
-# STEMI-scRNA-seq
-This repository contains the code that was used for FAT study, using spatial transcriptomics on epicardial fat tissue. More information can be found in the original paper: TODO
+# spatial FAT
+This repository contains the code that was used for Spatial FAT study, using spatial transcriptomics on epicardial fat tissue. More information can be found in the original paper: TODO
 
 ## data availability and description
 
