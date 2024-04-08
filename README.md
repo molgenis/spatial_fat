@@ -6,11 +6,10 @@ This repository contains the code that was used for Spatial FAT study, using spa
 the dataset consists of one slide, with four sections. section B and D contain one piece of tissue each, however section A and C both contain two pieces of tissue each. Section B and D containg healthy tissue, while sections A and C contain donor healthy and disease tissue from the same donor.
 
 Expression data is available here:
-https://eqtlgen.org/sc/datasets/
+https://eqtlgen.org/sc/datasets/epifat.html
 
 Expression data is available in two flavours:
 - raw spaceranger output
-- normalized count matrices
 - integrated using CCA as Seurat object
 
 
@@ -115,6 +114,16 @@ slice_objects = read_slices('./spaceranger_out/', ['V10A20-016_A1', 'V10A20-016_
 
 ```
 
+
+### B. Seurat object
+
+The Seurat object can simply be read using Seurat in R
+
+```r
+
+epifat <- readRDS('epifat_seurat_integrated_decon_metadata.rds')
+
+```
 
 
 ## data processing
