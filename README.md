@@ -40,15 +40,81 @@ get_spaceranger_objects <- function(space_ranger_loc, space_append="/outs/", spa
   return(sections_list)
 }
 
-
-
-###############################
-# set the locations of the files
-###############################
+# read objects
 space_ranger_loc <- './spaceranger_out/'
 spaceranger_object_list <- get_spaceranger_objects(space_ranger_loc)
 
 ```
+
+Or in python like this
+```python
+def read_slices(slices_loc, slices, counts_file='filtered_feature_bc_matrix.h5', do_norm=True, do_dimruc=True):
+    """read ST slices, do QC, and put them in a list
+        
+        Parameters
+        ----------
+        slices_loc : str
+            the location of the folders containing the slices
+        slices : list
+            a list containing the slices (directory names)
+        counts_file : str
+            the name of the count expression matrix
+        do_norm : bool
+            run normalization
+        do_dimruc : bool
+            run dimensional reduction
+        
+        Returns
+        -------
+        result
+           a dictionary of AnnData objects
+        """
+    # create a dictionary to store the slices
+    slices_dict = {}
+    # read each slice
+    for slice in slices:
+        # paste together the path
+        full_visium_path = ''.join([slices_loc, '/', slice, '/outs/'])
+        # read the file
+        adata = sc.read_visium(path = full_visium_path,
+                             count_file = counts_file)
+        # make gene names unique
+        adata.var_names_make_unique()
+        # do some standard preprocessing
+        adata.var["mt"] = adata.var_names.str.startswith("MT-")
+        sc.pp.calculate_qc_metrics(adata, qc_vars=["mt"], inplace=True)
+
+        sc.pp.filter_cells(adata, min_counts=200)
+        sc.pp.filter_genes(adata, min_cells=3)
+        
+        # normalize if requested
+        if do_norm:
+            # as well as the normalization
+            sc.pp.normalize_total(adata, inplace=True)
+            sc.pp.log1p(adata)
+            # and calculation of highly variable genes
+            sc.pp.highly_variable_genes(adata, flavor="seurat", n_top_genes=2000)
+            
+            # and dimensional reduction if requested
+            if do_dimruc:
+                # calculate principal components as well
+                sc.pp.pca(adata)
+                # do nearest neighbours
+                sc.pp.neighbors(adata)
+                # do 2d UMAP dim reduction
+                sc.tl.umap(adata)
+                # and Leiden clustering
+                sc.tl.leiden(adata, key_added="clusters")
+        
+        # add the result to the dictionary
+        slices_dict[slice] = adata
+    return slices_dict
+    
+# read each slices
+slice_objects = read_slices('./spaceranger_out/', ['V10A20-016_A1', 'V10A20-016_B1', 'V10A20-016_C1', 'V10A20-016_D1'])
+
+```
+
 
 
 ## data processing
@@ -94,7 +160,3 @@ alignment was done to the b38 version of the human genome using Spaceranger
 '*conventional_de/epifat_compare_eat_sat*' compare genes expressed in the slides to ones identified in previous studies
 
 '*conventional_de/epifat_de_dotplot*' plot the conventional DE resulting marker genes
-
-
-### 
-
