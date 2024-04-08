@@ -126,6 +126,8 @@ epifat <- readRDS('epifat_seurat_integrated_decon_metadata.rds')
 ```
 
 
+This Rstudio image with included libraries was used to process the data: https://github.com/royoelen/single-cell-container-server
+
 ## data processing
 
 ### alignment to reference genome
