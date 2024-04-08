@@ -1,16 +1,16 @@
 # spatial FAT
-This repository contains the code that was used for Spatial FAT study, using spatial transcriptomics on epicardial fat tissue. More information can be found in the original paper: TODO
+This repository contains the code that was used for Spatial FAT study, using spatial transcriptomics on epicardial fat tissue. More information can be found in the original paper
 
 ## data availability and description
 
 the dataset consists of one slide, with four sections. section B and D contain one piece of tissue each, however section A and C both contain two pieces of tissue each. Section B and D containg healthy tissue, while sections A and C contain donor healthy and disease tissue from the same donor.
 
-Expression data is available here:
+Expression data and more information is available here:
 https://eqtlgen.org/sc/datasets/epifat.html
 
 Expression data is available in two flavours:
-- raw spaceranger output
-- integrated using CCA as Seurat object
+- raw spaceranger output (https://downloads.molgeniscloud.org/downloads/epifat/epifat_spaceranger_outs.zip)
+- integrated using CCA as Seurat object (https://downloads.molgeniscloud.org/downloads/epifat/epifat_seurat_integrated_decon_metadata.rds)
 
 
 ### A. raw spaceranger output
