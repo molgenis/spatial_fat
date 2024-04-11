@@ -115,9 +115,9 @@ slice_objects = read_slices('./spaceranger_out/', ['V10A20-016_A1', 'V10A20-016_
 ```
 
 
-### B. Seurat object
+### B. Processed Seurat object
 
-The Seurat object can simply be read using Seurat in R
+The Seurat object, which has been QC-ed and been integrated over each section using CCA, can simply be read using Seurat in R
 
 ```r
 
