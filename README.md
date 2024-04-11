@@ -15,7 +15,7 @@ Expression data is available in two flavours:
 
 ### A. raw spaceranger output
 
-To use the raw spaceranger directories, use the following function and call
+To use the raw spaceranger directories, you can use either Python (scanpy) or R (Seurat)
 
 Given the spaceranger output was download and present in the spaceranger_out folder, they can be loaded into Seurat, using the following code:
 ```r
@@ -45,7 +45,7 @@ spaceranger_object_list <- get_spaceranger_objects(space_ranger_loc)
 
 ```
 
-Or in python like this
+Or in scanpy like this
 ```python
 def read_slices(slices_loc, slices, counts_file='filtered_feature_bc_matrix.h5', do_norm=True, do_dimruc=True):
     """read ST slices, do QC, and put them in a list
