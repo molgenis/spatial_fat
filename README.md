@@ -171,3 +171,9 @@ alignment was done to the b38 version of the human genome using Spaceranger
 '*conventional_de/epifat_compare_eat_sat*' compare genes expressed in the slides to ones identified in previous studies
 
 '*conventional_de/epifat_de_dotplot*' plot the conventional DE resulting marker genes
+
+
+## License
+
+The code availabe in this repository is available under GPLv2 License:
+https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
