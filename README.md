@@ -1,5 +1,5 @@
 # spatial FAT
-This repository contains the code that was used for Spatial FAT study, using spatial transcriptomics on epicardial fat tissue. More information can be found in the original paper
+This repository contains the code that was used for Spatial FAT study, using spatial transcriptomics on epicardial fat tissue. More information can be found in the thesis chapter: https://pure.rug.nl/ws/portalfiles/portal/1004979907/Chapter_6.pdf
 
 ## data availability and description
 
