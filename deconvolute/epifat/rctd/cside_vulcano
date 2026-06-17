@@ -1,0 +1,333 @@
+###############################
+# Vulcano plot
+###############################
+# load stuff
+myRCTD_section_A1 <- readRDS("/groups/umcg-franke-scrna/tmp01/projects/epifat/ongoing/seurat_preprocess_samples/objects/myRCTD_section_A1.230912.cside.rds")
+myRCTD_section_C1 <- readRDS("/groups/umcg-franke-scrna/tmp01/projects/epifat/ongoing/seurat_preprocess_samples/objects/myRCTD_section_C1.230913.cside.rds")
+
+# make a list of all DE genes for sections A1 and C1
+results_de_A1_adipo <- myRCTD_section_A1@de_results$all_gene_list$Adipocyte
+results_de_A1_endo <- myRCTD_section_A1@de_results$all_gene_list$Endothelial_cell
+results_de_C1_adipo <- myRCTD_section_C1@de_results$all_gene_list$Adipocyte
+results_de_C1_endo <- myRCTD_section_C1@de_results$all_gene_list$Endothelial_cell
+
+# Specify the Ensembl dataset you want to use (human)
+ensembl_dataset <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+
+# Define your Ensembl IDs
+ensembl_ids_A1_adipo <- rownames(results_de_A1_adipo)
+ensembl_ids_A1_endo <- rownames(results_de_A1_endo)
+ensembl_ids_C1_adipo <- rownames(results_de_C1_adipo)
+ensembl_ids_C1_endo <- rownames(results_de_C1_endo)
+
+# Get gene symbols corresponding to Ensembl IDs
+gene_symbols_A1_adipo <- getBM(attributes = c("ensembl_gene_id", "external_gene_name"),
+                               filters = "ensembl_gene_id", 
+                               values = ensembl_ids_A1_adipo, 
+                               mart = ensembl_dataset)
+gene_symbols_A1_endo <- getBM(attributes = c("ensembl_gene_id", "external_gene_name"),
+                              filters = "ensembl_gene_id", 
+                              values = ensembl_ids_A1_endo, 
+                              mart = ensembl_dataset)
+gene_symbols_C1_adipo <- getBM(attributes = c("ensembl_gene_id", "external_gene_name"),
+                               filters = "ensembl_gene_id", 
+                               values = ensembl_ids_C1_adipo, 
+                               mart = ensembl_dataset)
+gene_symbols_C1_endo <- getBM(attributes = c("ensembl_gene_id", "external_gene_name"),
+                              filters = "ensembl_gene_id", 
+                              values = ensembl_ids_C1_endo, 
+                              mart = ensembl_dataset)
+
+# Merge gene symbols with original data based on Ensembl IDs
+merged_data_A1_adipo <- merge(gene_symbols_A1_adipo, results_de_A1_adipo, by.x = "ensembl_gene_id", by.y = "row.names")
+merged_data_A1_endo <- merge(gene_symbols_A1_endo, results_de_A1_endo, by.x = "ensembl_gene_id", by.y = "row.names")
+merged_data_C1_adipo <- merge(gene_symbols_C1_adipo, results_de_C1_adipo, by.x = "ensembl_gene_id", by.y = "row.names")
+merged_data_C1_endo <- merge(gene_symbols_C1_endo, results_de_C1_endo, by.x = "ensembl_gene_id", by.y = "row.names")
+
+# merging all genes
+merge_cside_genes <- rbind(results_de_A1_adipo, results_de_A1_endo,results_de_C1_adipo,
+                     results_de_C1_endo)
+
+# extract gene names
+genes <- merge_cside_genes$external_gene_name
+
+###############################
+# General vulcano plot of all DE genes from CSIDE (endo+adipo A1+C1)
+###############################
+
+library(tidyverse) # includes ggplot2, for data visualisation. dplyr, for data manipulation.
+library(RColorBrewer) # for a colourful plot
+library(ggrepel)
+
+# make a first vulcano plot
+ggplot(data = merge_cside_genes, aes(x = log_fc, y = -log10(p_val))) +
+  geom_vline(xintercept = c(-0.6, 0.6), col = "gray", linetype = 'dashed') +
+  geom_hline(yintercept = -log10(0.05), col = "gray", linetype = 'dashed') + 
+  geom_point() 
+
+# Add a column to the data frame to specify if they are UP- or DOWN- regulated (log2fc respectively positive or negative)
+merge_cside_genes$diffexpressed <- "NO"
+  # if log2Foldchange > 0.6 and pvalue < 0.05, set as "UP"
+merge_cside_genes$diffexpressed[merge_cside_genes$log_fc > 0.6 & merge_cside_genes$p_val < 0.05] <- "UP"
+  # if log2Foldchange < -0.6 and pvalue < 0.05, set as "DOWN"
+merge_cside_genes$diffexpressed[merge_cside_genes$log_fc < -0.6 & merge_cside_genes$p_val < 0.05] <- "DOWN"
+   
+# make vulcano plot of all DE genes
+ggplot(data = merge_cside_genes, aes(x = log_fc, y = -log10(p_val), col = diffexpressed)) + 
+  geom_vline(xintercept = c(-0.6, 0.6), col = "gray", linetype = 'dashed') +
+  geom_hline(yintercept = -log10(0.05), col = "gray", linetype = 'dashed') +
+  geom_point(size = 2) +
+  scale_color_manual(values = c("#00AFBB", "grey", "#FFDB6D"), # to set the colours of our variable
+                     labels = c("Downregulated", "Not significant", "Upregulated")) # to set the labels in case we want to overwrite the categories from the dataframe (UP, DOWN, NO)
+
+################################
+# C1 endothelial cells DE only
+################################
+
+# make vulcano plot of C1 endothelial cells only
+# Add a column to the data frame to specify if they are UP- or DOWN- regulated (log2fc respectively positive or negative)<br /><br /><br />
+results_de_C1_endo$diffexpressed <- "NO"
+# if log2Foldchange > 0.5 and pvalue < 0.05, set as "UP"
+results_de_C1_endo$diffexpressed[results_de_C1_endo$log_fc > 0.5 & results_de_C1_endo$p_val < 0.05] <- "UP"
+# if log2Foldchange < -0.5 and pvalue < 0.05, set as "DOWN"
+results_de_C1_endo$diffexpressed[results_de_C1_endo$log_fc < -0.5 & results_de_C1_endo$p_val < 0.05] <- "DOWN"
+
+# add gene names to the vulcano plot
+results_de_C1_endo$ensembl_id_column <- rownames(results_de_C1_endo)
+ensembl <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+ensembl_ids <- results_de_C1_endo$ensembl_id_column  # Replace with the actual column name in your data frame
+gene_info <- getBM(attributes = c("ensembl_gene_id", "external_gene_name"),
+                   filters = "ensembl_gene_id",
+                   values = ensembl_ids,
+                   mart = ensembl)
+results_de_C1_endo_with_symbols <- merge(results_de_C1_endo, gene_info, by.x = "ensembl_id_column", by.y = "ensembl_gene_id", all.x = TRUE)
+
+# Sort the data frame based on p-value
+results_de_C1_endo_sorted <- results_de_C1_endo[order(results_de_C1_endo$p_val), ]
+
+# get top 20 overall
+top_20_all_genes <- head(subset(results_de_C1_endo_sorted, diffexpressed %in% c("DOWN", "UP") & diffexpressed != "NO"), 20)
+
+# Select the top 20 up and down-regulated genes
+top_20_up_genes <- head(results_de_C1_endo_sorted[results_de_C1_endo_sorted$diffexpressed == "UP", ], 20)
+top_20_down_genes <- head(results_de_C1_endo_sorted[results_de_C1_endo_sorted$diffexpressed == "DOWN", ], 20)
+
+# add the right columns
+top_20_all_genes_with_symbols <- merge(top_20_all_genes, gene_info, by.x = "ensembl_id_column", by.y = "ensembl_gene_id", all.x = TRUE)
+top_20_up_genes_with_symbols <- merge(top_20_up_genes, gene_info, by.x = "ensembl_id_column", by.y = "ensembl_gene_id", all.x = TRUE)
+top_20_down_genes_with_symbols <- merge(top_20_down_genes, gene_info, by.x = "ensembl_id_column", by.y = "ensembl_gene_id", all.x = TRUE)
+
+# Plot the volcano plot with all genes
+ggplot(data = results_de_C1_endo_with_symbols, mapping = aes(x = log_fc, y = -log10(p_val), col = diffexpressed)) +
+  geom_vline(xintercept = c(-0.5, 0.5), col = "gray", linetype = 'dashed') +
+  geom_hline(yintercept = -log10(0.05), col = "gray", linetype = 'dashed') +
+  geom_point(size = 3) +
+  scale_color_manual(values = c("#00AFBB", "grey", "#FFDB6D"),
+                     labels = c("Downregulated", "Not significant", "Upregulated")) +
+  coord_cartesian(ylim = c(0, 80), xlim = c(-3, 3)) +
+  labs(color = 'Severe',
+       x = expression("log"[2]*"FC"), y = expression("-log"[10]*"p-value")) +
+  scale_x_continuous(breaks = seq(-10, 10, 2)) +
+  ggtitle('DE genes of endothelial cells in patient C1') +
+  
+  # Use a separate data frame for the labels
+  geom_text_repel(#data = rbind(top_20_up_genes_with_symbols, top_20_down_genes_with_symbols),
+                  data = top_20_all_genes_with_symbols,
+                  mapping = aes(x = log_fc, y = -log10(p_val), label = external_gene_name),
+                  col = "black",  # Customize label color
+                  size = 4,
+                  box.padding = 0.15,  # Adjust as needed
+                  point.padding = 0.05,  # Adjust as needed
+                  max.overlaps = Inf) +
+# Remove the grey background
+theme_void() +
+theme_minimal()
+
+################################
+# Vulcano plot of DE genes of adipocytes in patient C1
+################################
+
+# make vulcano plot of C1 adipocytes
+# Add a column to the data frame to specify if they are UP- or DOWN- regulated (log2fc respectively positive or negative)<br /><br /><br />
+results_de_C1_adipo$diffexpressed <- "NO"
+# if log2Foldchange > 0.6 and pvalue < 0.05, set as "UP"
+results_de_C1_adipo$diffexpressed[results_de_C1_adipo$log_fc > 0.5 & results_de_C1_adipo$p_val < 0.05] <- "UP"
+# if log2Foldchange < -0.6 and pvalue < 0.05, set as "DOWN"
+results_de_C1_adipo$diffexpressed[results_de_C1_adipo$log_fc < -0.5 & results_de_C1_adipo$p_val < 0.05] <- "DOWN"
+
+# add gene names to the vulcano plot
+results_de_C1_adipo$ensembl_id_column <- rownames(results_de_C1_adipo)
+ensembl <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+ensembl_ids <- results_de_C1_adipo$ensembl_id_column  # Replace with the actual column name in your data frame
+gene_info <- getBM(attributes = c("ensembl_gene_id", "external_gene_name"),
+                   filters = "ensembl_gene_id",
+                   values = ensembl_ids,
+                   mart = ensembl)
+results_de_C1_adipo_with_symbols <- merge(results_de_C1_adipo, gene_info, by.x = "ensembl_id_column", by.y = "ensembl_gene_id", all.x = TRUE)
+
+# Sort the data frame based on p-value
+results_de_C1_adipo_sorted <- results_de_C1_adipo[order(results_de_C1_adipo$p_val), ]
+
+# get top 20 overall genes
+top_20_all_genes <- head(subset(results_de_C1_adipo_sorted, diffexpressed %in% c("DOWN", "UP") & diffexpressed != "NO"), 20)
+
+# Select the top 20 up and down-regulated genes
+top_20_up_genes <- head(results_de_C1_adipo_sorted[results_de_C1_adipo_sorted$diffexpressed == "UP", ], 20)
+top_20_down_genes <- head(results_de_C1_adipo_sorted[results_de_C1_adipo_sorted$diffexpressed == "DOWN", ], 20)
+
+# add the right columns
+top_20_all_genes_with_symbols <- merge(top_20_all_genes, gene_info, by.x = "ensembl_id_column", by.y = "ensembl_gene_id", all.x = TRUE)
+top_20_up_genes_with_symbols <- merge(top_20_up_genes, gene_info, by.x = "ensembl_id_column", by.y = "ensembl_gene_id", all.x = TRUE)
+top_20_down_genes_with_symbols <- merge(top_20_down_genes, gene_info, by.x = "ensembl_id_column", by.y = "ensembl_gene_id", all.x = TRUE)
+
+# Plot the volcano plot with all genes
+ggplot(data = results_de_C1_adipo_with_symbols, mapping = aes(x = log_fc, y = -log10(p_val), col = diffexpressed)) +
+  geom_vline(xintercept = c(-0.5, 0.5), col = "gray", linetype = 'dashed') +
+  geom_hline(yintercept = -log10(0.05), col = "gray", linetype = 'dashed') +
+  geom_point(size = 3) +
+  scale_color_manual(values = c("#00AFBB", "grey", "#FFDB6D"),
+                     labels = c("Downregulated", "Not significant", "Upregulated")) +
+  coord_cartesian(ylim = c(0, 50), xlim = c(-3, 3)) +
+  labs(color = 'Severe',
+       x = expression("log"[2]*"FC"), y = expression("-log"[10]*"p-value")) +
+  scale_x_continuous(breaks = seq(-10, 10, 2)) +
+  ggtitle('DE genes of adipocytes in patient C1') +
+  
+  # Use a separate data frame for the labels
+  geom_text_repel(#data = rbind(top_20_up_genes_with_symbols, top_20_down_genes_with_symbols),
+                  data = top_20_all_genes_with_symbols,
+                  mapping = aes(x = log_fc, y = -log10(p_val), label = external_gene_name),
+                  col = "black",  # Customize label color
+                  size = 4,
+                  box.padding = 0.15,  # Adjust as needed
+                  point.padding = 0.05,  # Adjust as needed
+                  max.overlaps = Inf) +
+  # Remove the grey background
+  theme_void() +
+  theme_minimal()
+
+################################
+# Vulcano plot of DE genes of endothelial cells in patient A1
+################################
+
+# make vulcano plot of A1 endothelial cells only
+# Add a column to the data frame to specify if they are UP- or DOWN- regulated (log2fc respectively positive or negative)<br /><br /><br />
+results_de_A1_endo$diffexpressed <- "NO"
+# if log2Foldchange > 0.6 and pvalue < 0.05, set as "UP"
+results_de_A1_endo$diffexpressed[results_de_A1_endo$log_fc > 0.6 & results_de_A1_endo$p_val < 0.05] <- "UP"
+# if log2Foldchange < -0.6 and pvalue < 0.05, set as "DOWN"
+results_de_A1_endo$diffexpressed[results_de_A1_endo$log_fc < -0.6 & results_de_A1_endo$p_val < 0.05] <- "DOWN"
+
+# add gene names to the vulcano plot
+results_de_A1_endo$ensembl_id_column <- rownames(results_de_A1_endo)
+ensembl <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+ensembl_ids <- results_de_A1_endo$ensembl_id_column  # Replace with the actual column name in your data frame
+gene_info <- getBM(attributes = c("ensembl_gene_id", "external_gene_name"),
+                   filters = "ensembl_gene_id",
+                   values = ensembl_ids,
+                   mart = ensembl)
+results_de_A1_endo_with_symbols <- merge(results_de_A1_endo, gene_info, by.x = "ensembl_id_column", by.y = "ensembl_gene_id", all.x = TRUE)
+
+# Sort the data frame based on p-value
+results_de_A1_endo_sorted <- results_de_A1_endo[order(results_de_A1_endo$p_val), ]
+
+# get top 20 overall genes
+top_20_all_genes <- head(subset(results_de_A1_endo_sorted, diffexpressed %in% c("DOWN", "UP") & diffexpressed != "NO"), 20)
+
+# Select the top 20 up and down-regulated genes
+top_20_up_genes <- head(results_de_A1_endo_sorted[results_de_A1_endo_sorted$diffexpressed == "UP", ], 20)
+top_20_down_genes <- head(results_de_A1_endo_sorted[results_de_A1_endo_sorted$diffexpressed == "DOWN", ], 20)
+
+# add the right columns
+top_20_all_genes_with_symbols <- merge(top_20_all_genes, gene_info, by.x = "ensembl_id_column", by.y = "ensembl_gene_id", all.x = TRUE)
+top_20_up_genes_with_symbols <- merge(top_20_up_genes, gene_info, by.x = "ensembl_id_column", by.y = "ensembl_gene_id", all.x = TRUE)
+top_20_down_genes_with_symbols <- merge(top_20_down_genes, gene_info, by.x = "ensembl_id_column", by.y = "ensembl_gene_id", all.x = TRUE)
+
+# Plot the volcano plot with all genes
+ggplot(data = results_de_A1_endo_with_symbols, mapping = aes(x = log_fc, y = -log10(p_val), col = diffexpressed)) +
+  geom_vline(xintercept = c(-0.6, 0.6), col = "gray", linetype = 'dashed') +
+  geom_hline(yintercept = -log10(0.05), col = "gray", linetype = 'dashed') +
+  geom_point(size = 2) +
+  scale_color_manual(values = c("#00AFBB", "grey", "#FFDB6D"),
+                     labels = c("Downregulated", "Not significant", "Upregulated")) +
+  coord_cartesian(ylim = c(0, 30), xlim = c(-3, 3)) +
+  labs(color = 'Severe',
+       x = expression("log"[2]*"FC"), y = expression("-log"[10]*"p-value")) +
+  scale_x_continuous(breaks = seq(-10, 10, 2)) +
+  ggtitle('DE genes of endothelial cells in patient A1') +
+  
+  # Use a separate data frame for the labels
+  geom_text_repel(#data = rbind(top_20_up_genes_with_symbols, top_20_down_genes_with_symbols),
+                  data = top_20_all_genes_with_symbols,
+                  mapping = aes(x = log_fc, y = -log10(p_val), label = external_gene_name),
+                  col = "black",  # Customize label color
+                  size = 5,
+                  box.padding = 0.15,  # Adjust as needed
+                  point.padding = 0.05,  # Adjust as needed
+                  max.overlaps = Inf) +
+  # Remove the grey background
+  theme_void() +
+  theme_minimal()
+
+################################
+# Vulcano plot of DE genes of adipocytes in patient A1
+################################
+
+# make vulcano plot of A1 adipocytes
+# Add a column to the data frame to specify if they are UP- or DOWN- regulated (log2fc respectively positive or negative)<br /><br /><br />
+results_de_A1_adipo$diffexpressed <- "NO"
+# if log2Foldchange > 0.6 and pvalue < 0.05, set as "UP"
+results_de_A1_adipo$diffexpressed[results_de_A1_adipo$log_fc > 0.6 & results_de_A1_adipo$p_val < 0.05] <- "UP"
+# if log2Foldchange < -0.6 and pvalue < 0.05, set as "DOWN"
+results_de_A1_adipo$diffexpressed[results_de_A1_adipo$log_fc < -0.6 & results_de_A1_adipo$p_val < 0.05] <- "DOWN"
+
+# add gene names to the vulcano plot
+results_de_A1_adipo$ensembl_id_column <- rownames(results_de_A1_adipo)
+ensembl <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+ensembl_ids <- results_de_A1_adipo$ensembl_id_column  # Replace with the actual column name in your data frame
+gene_info <- getBM(attributes = c("ensembl_gene_id", "external_gene_name"),
+                   filters = "ensembl_gene_id",
+                   values = ensembl_ids,
+                   mart = ensembl)
+results_de_A1_adipo_with_symbols <- merge(results_de_A1_adipo, gene_info, by.x = "ensembl_id_column", by.y = "ensembl_gene_id", all.x = TRUE)
+
+# Sort the data frame based on p-value
+results_de_A1_adipo_sorted <- results_de_A1_adipo[order(results_de_A1_adipo$p_val), ]
+
+# get top 20 overall genes
+top_20_all_genes <- head(subset(results_de_A1_adipo_sorted, diffexpressed %in% c("DOWN", "UP") & diffexpressed != "NO"), 20)
+
+# Select the top 20 up and down-regulated genes
+top_20_up_genes <- head(results_de_A1_adipo_sorted[results_de_A1_adipo_sorted$diffexpressed == "UP", ], 20)
+top_20_down_genes <- head(results_de_A1_adipo_sorted[results_de_A1_adipo_sorted$diffexpressed == "DOWN", ], 20)
+
+# add the right columns
+top_20_all_genes_with_symbols <- merge(top_20_all_genes, gene_info, by.x = "ensembl_id_column", by.y = "ensembl_gene_id", all.x = TRUE)
+top_20_up_genes_with_symbols <- merge(top_20_up_genes, gene_info, by.x = "ensembl_id_column", by.y = "ensembl_gene_id", all.x = TRUE)
+top_20_down_genes_with_symbols <- merge(top_20_down_genes, gene_info, by.x = "ensembl_id_column", by.y = "ensembl_gene_id", all.x = TRUE)
+
+# Plot the volcano plot with all genes
+ggplot(data = results_de_A1_adipo_with_symbols, mapping = aes(x = log_fc, y = -log10(p_val), col = diffexpressed)) +
+  geom_vline(xintercept = c(-0.6, 0.6), col = "gray", linetype = 'dashed') +
+  geom_hline(yintercept = -log10(0.05), col = "gray", linetype = 'dashed') +
+  geom_point(size = 3) +
+  scale_color_manual(values = c("#00AFBB", "grey", "#FFDB6D"),
+                     labels = c("Downregulated", "Not significant", "Upregulated")) +
+  coord_cartesian(ylim = c(0, 20), xlim = c(-2, 2)) +
+  labs(color = 'Severe',
+       x = expression("log"[2]*"FC"), y = expression("-log"[10]*"p-value")) +
+  scale_x_continuous(breaks = seq(-10, 10, 2)) +
+  ggtitle('DE genes of adipocytes in patient A1') +
+  
+  # Use a separate data frame for the labels
+  geom_text_repel(#data = rbind(top_20_up_genes_with_symbols, top_20_down_genes_with_symbols),
+                  data = top_20_all_genes_with_symbols,
+                  mapping = aes(x = log_fc, y = -log10(p_val), label = external_gene_name),
+                  col = "black",  # Customize label color
+                  size = 4,
+                  box.padding = 0.15,  # Adjust as needed
+                  point.padding = 0.05,  # Adjust as needed
+                  max.overlaps = Inf) +
+  # Remove the grey background
+  theme_void() +
+  theme_minimal()
